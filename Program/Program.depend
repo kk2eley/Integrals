@@ -1,5 +1,6 @@
 # depslib dependency file v1.0
-1713897558 source:/home/yaro2k/C_projects/Integrals/Program/main.c
+1715492904 source:/home/yaro2k/C_projects/Integrals/Program/main.c
 	<stdio.h>
 	<stdlib.h>
+	<string.h>
 

@@ -27,10 +27,6 @@ double tangentIteration(func_t F, func_t F1, double a, double b, double x) {
             return f(x) - g(x);
         }
 
-        double F1(double x) {
-            return f1(x) - g1(x);
-        }
-
         double eps_cur = b - a;
         double x, xprev;
         if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
@@ -105,6 +101,7 @@ double tangentIteration(func_t F, func_t F1, double a, double b, double x) {
 #endif
 
 
+
 double integral(func_t f, double a, double b, double eps2) {
     int n = 1000;
     double eps_cur = 0;
@@ -162,6 +159,7 @@ double f3_dif(double x) {
     return -5 / (x * x);
 }*/
 
+
 double f1 (double x);
 
 double f2 (double x);
@@ -207,7 +205,7 @@ void print_del(void) {
     printf("======================================\n");
 }
 
-int root_iterations(int num_a, int num_b, double a, double b){
+void root_iterations(int num_a, int num_b, double a, double b){
     num_of_iterations = 0;
     root(functions[num_a], derivs[num_a], functions[num_b], derivs[num_b], a, b, eps1);
     print_del();
@@ -227,7 +225,10 @@ void print_help(void) {
     print_del();
     printf("To show intersection points use flag: -roots\n");
     printf("To show value of integral on segment between roots use flag: -integrals\n");
-    printf("To show answer use flag: -answer\n");
+    #if defined(HANDLE)
+    printf("To show intersection points of functions that you entered by hands use -hdl-roots\n");
+    printf("TO show answer for your own functions use: -hdl-answer\n");
+    #endif // defined
     printf("To show help information use flag: -help\n");
     printf("To show number of iterations you need to calculate intersection use: -iters <number of first func> <number of second func> <left border> <right border>\n");
     printf("borders for functions from task:\n");
@@ -241,9 +242,9 @@ void print_help(void) {
 
 void print_roots(void) {
     print_del();
-    printf("f1 intersect f2 on [4;6]: %f\n", root(f1, df1, f2, df2, 4, 6, 0.001));
-    printf("f1 intersect f3 on [1;2]: %f\n", root(f1, df1, f3, df3, 1, 2, 0.001));
-    printf("f2 intersect f3 on [3;5]: %f\n", root(f2, df2, f3, df3, 3, 5, 0.001));
+    printf("fh1 intersect fh2: %f\n", root(f1, df1, f2, df2, 4, 6, eps1));
+    printf("f1 intersect f3 on [1;2]: %f\n", root(f1, df1, f3, df3, 1, 2, eps1));
+    printf("f2 intersect f3 on [3;5]: %f\n", root(f2, df2, f3, df3, 3, 5, eps1));
     print_del();
 }
 
@@ -299,9 +300,9 @@ void print_answer(void) {
     print_del();
     printf("Real task\n");
     printf("f1 = 3 (0.5 / (x + 1) + 1), f2 = 2.5x − 9.5, f3 = 5 / x, x > 0\n");
-    printf("Square of triangle: %f\n", integral(f1, root(f1, df1, f3, df3, 1, 2, 0.001), root(f1, df1, f2, df2, 4, 6, 0.001), 0.001) -
-    integral(f2, root(f2, df2, f3, df3, 3, 5, 0.001), root(f1, df1, f2, df2, 4, 6, 0.001), 0.001) -
-    integral(f3, root(f1, df1, f3, df3, 1, 2, 0.001), root(f2, df2, f3, df3, 3, 5, 0.001), 0.001));
+    printf("Square of triangle: %f\n", integral(f1, root(f1, df1, f3, df3, 1, 2, eps1), root(f1, df1, f2, df2, 4, 6, eps1), eps2) -
+    integral(f2, root(f2, df2, f3, df3, 3, 5, eps1), root(f1, df1, f2, df2, 4, 6, eps1), eps2) -
+    integral(f3, root(f1, df1, f3, df3, 1, 2, eps1), root(f2, df2, f3, df3, 3, 5, eps1), eps2));
 }
 
 //выдать ошибку, если аргументы командной строки некорректны
@@ -311,10 +312,41 @@ void print_exeption(void){
     print_del();
 }
 
+#if defined(HANDLE)
+double fh1(double x);
+double fh2(double x);
+double fh3(double x);
+
+extern double leftborder, rightborder;
+
+void print_hdl_roots(void) {
+    print_del();
+    printf("fh1 intersect fh2 on [%f;%f]: %f\n",leftborder, rightborder, root(fh1, NULL, fh2, NULL, leftborder, rightborder, eps1));
+    printf("fh1 intersect fh3 on [%f;%f]: %f\n",leftborder, rightborder, root(fh1, NULL, fh3, df3, leftborder, rightborder, eps1));
+    printf("fh2 intersect fh3 on [%f;%f]: %f\n",leftborder, rightborder, root(fh2, NULL, fh3, NULL, leftborder, rightborder, eps1));
+    print_del();
+}
+
+void print_hdl_answer(void) {
+    print_del();
+    double I1 = integral(fh1, root(fh1, NULL, fh2, NULL, leftborder, rightborder, eps1), root(fh1, NULL, fh3, df3, leftborder, rightborder, eps1), eps2);
+    double I2 = integral(f2, root(fh2, NULL, fh3, NULL, leftborder, rightborder, eps1), root(fh1, NULL, fh2, NULL, leftborder, rightborder, eps1), eps2);
+    double I3 = integral(fh3, root(fh1, NULL, fh3, df3, leftborder, rightborder, eps1), root(fh2, NULL, fh3, NULL, leftborder, rightborder, eps1), eps2);
+    double I = I1 + I2 + I3;
+    I = I < 0 ? -I : I;
+    printf("Square of handle entered functions: %f\n", I);
+}
+#endif
 
 int main (int argc, char ** argv) {
+
+    #if defined(HANDLE)
+    int num_of_commands = 9;
+    char * commands[] = {"-roots", "-integrals", "-answer", "-help", "-iters", "-test-roots" ,"-test-integrals", "-hdl-roots", "-hdl-answer"};//список команд
+    #else
     int num_of_commands = 7;
     char * commands[] = {"-roots", "-integrals", "-answer", "-help", "-iters", "-test-roots" ,"-test-integrals"};//список команд
+    #endif // defined
     int  cur_arg = 1;
 
     while (cur_arg < argc){//обработка аргументов командной строки
@@ -366,6 +398,14 @@ int main (int argc, char ** argv) {
             cur_arg += 3;
             test_integrals(f_a, a, b);
             break;
+        #if defined(HANDLE)
+        case 8:
+            print_hdl_roots();
+            break;
+        case 9:
+            print_hdl_answer();
+            break;
+        #endif // defined
         default:
         print_exeption(); // ввели неправильную команду
             break;
