@@ -1,14 +1,27 @@
+# Определяем переменную компилятора и флаги
+CC=gcc
+CFLAGS=-m32
+NASM=nasm
+NASMFLAGS=-f elf32
+METHOD=
+
 all: program
 
+chord: METHOD="-DCHORD"
+chord: all
+
+tangent: METHOD="-DTANGENT"
+tangent: all
+	
 main.o: main.c
-	gcc -m32 -c -o main.o main.c
+	$(CC) $(CFLAGS) $(METHOD) -c -o main.o main.c
 
 functions.o: functions.asm
-	nasm -f elf32 -o functions.o functions.asm
+	$(NASM) $(NASMFLAGS) -o functions.o functions.asm
 
 program: main.o functions.o
-	gcc -o program main.o functions.o -m32
-  
+	$(CC) -o program main.o functions.o $(CFLAGS)
+
 clean:
-	rm *.o program
+	rm -f *.o program
 

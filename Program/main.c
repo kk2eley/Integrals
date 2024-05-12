@@ -6,6 +6,8 @@ typedef double (*func_t)(double);
 
 double eps1 = 0.0001, eps2 = 0.0001;
 
+int num_of_iterations = 0;
+
 double chordIteration(func_t F, double a, double b, double x) {
     if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
         return (x - F(x) * (b - x) / (F(b) - F(x)));
@@ -18,33 +20,90 @@ double tangentIteration(func_t F, func_t F1, double a, double b, double x) {
     return (x - F(x) / F1(x));
 }
 
-int num_of_iterations = 0;
-double root(func_t f, func_t f1, func_t g, func_t g1, double a, double b, double eps1) {
-    double F(double x) {
-        return f(x) - g(x);
-    }
 
-    double F1(double x) {
-        return f1(x) - g1(x);
-    }
+#if defined(CHORD)
+    double root(func_t f, func_t f1, func_t g, func_t g1, double a, double b, double eps1) {
+        double F(double x) {
+            return f(x) - g(x);
+        }
 
-    double eps_cur = b - a;
-    double x1, x2;
-    if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
-        x1 = a, x2 = b;
-    } else {
-        x1 = b, x2 = a;
+        double F1(double x) {
+            return f1(x) - g1(x);
+        }
+
+        double eps_cur = b - a;
+        double x, xprev;
+        if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
+            x = a;
+        } else {
+            x = b;
+        }
+        num_of_iterations = 0;
+        while (eps_cur > eps1) {
+            xprev = x;
+            x = chordIteration(F, a, b, x);
+            eps_cur = x - xprev;
+            eps_cur = eps_cur < 0 ? -eps_cur : eps_cur;
+            num_of_iterations++;
+        }
+        return x;
     }
-    num_of_iterations = 0;
-    while (eps_cur > eps1) {
-        x1 = chordIteration(F, a, b, x1);
-        x2 = tangentIteration(F, F1, a, b, x2);
-        eps_cur = x1 - x2;
-        eps_cur = eps_cur < 0 ? -eps_cur : eps_cur;
-        num_of_iterations++;
+#elif defined(TANGENT)
+    double root(func_t f, func_t f1, func_t g, func_t g1, double a, double b, double eps1) {
+        double F(double x) {
+            return f(x) - g(x);
+        }
+
+        double F1(double x) {
+            return f1(x) - g1(x);
+        }
+
+        double eps_cur = b - a;
+        double x, xprev;
+        if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
+            x = b;
+        } else {
+            x = a;
+        }
+        num_of_iterations = 0;
+        while (eps_cur > eps1) {
+            xprev = x;
+            x = tangentIteration(F, F1, a, b, x);
+            eps_cur = x - xprev;
+            eps_cur = eps_cur < 0 ? -eps_cur : eps_cur;
+            num_of_iterations++;
+        }
+        return x;
     }
-    return x1;
-}
+#else
+    double root(func_t f, func_t f1, func_t g, func_t g1, double a, double b, double eps1) {
+        double F(double x) {
+            return f(x) - g(x);
+        }
+
+        double F1(double x) {
+            return f1(x) - g1(x);
+        }
+
+        double eps_cur = b - a;
+        double x1, x2;
+        if ((F(b) - F(a)) * ((b - a) / 2 - F((b - a) / 2)) > 0){
+            x1 = a, x2 = b;
+        } else {
+            x1 = b, x2 = a;
+        }
+        num_of_iterations = 0;
+        while (eps_cur > eps1) {
+            x1 = chordIteration(F, a, b, x1);
+            x2 = tangentIteration(F, F1, a, b, x2);
+            eps_cur = x1 - x2;
+            eps_cur = eps_cur < 0 ? -eps_cur : eps_cur;
+            num_of_iterations++;
+        }
+        return x1;
+    }
+#endif
+
 
 double integral(func_t f, double a, double b, double eps2) {
     int n = 1000;
